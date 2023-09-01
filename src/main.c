@@ -81,10 +81,13 @@ void update(void) {
     // TODO
 }
 
-void clear_colour_buffer(uint32_t colour) {
+void draw_grid(void) {
+    int grid_size = 10;
     for (int y = 0; y < window_height; ++y) {
         for (int x = 0; x < window_width; ++x) {
-            colour_buffer[(window_width * y) + x] = colour;
+            if (x % grid_size == 0 || y % grid_size == 0) {
+                colour_buffer[(window_width * y) + x] = 0xFF222222;
+            }
         }
     }
 }
@@ -100,9 +103,19 @@ void render_colour_buffer(void) {
     SDL_RenderCopy(renderer, colour_buffer_texture, NULL, NULL);
 }
 
+void clear_colour_buffer(uint32_t colour) {
+    for (int y = 0; y < window_height; ++y) {
+        for (int x = 0; x < window_width; ++x) {
+            colour_buffer[(window_width * y) + x] = colour;
+        }
+    }
+}
+
 void render(void) {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderClear(renderer);
+
+    draw_grid();
 
     render_colour_buffer();
     clear_colour_buffer(0xFFFFFF00);
