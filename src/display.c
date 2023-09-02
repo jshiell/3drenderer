@@ -51,7 +51,7 @@ void draw_grid(void) {
 }
 
 void draw_pixel(int x, int y, uint32_t colour) {
-    if (x < window_width && y < window_height) {
+    if (x>= 0 && x < window_width && y>=0 && y < window_height) {
         colour_buffer[(window_width * y) + x] = colour;
     }
 }
@@ -59,7 +59,7 @@ void draw_pixel(int x, int y, uint32_t colour) {
 void draw_rect(int start_x, int start_y, int width, int height, uint32_t colour) {
     for (int y = start_y; y < start_y + height; ++y) {
         for (int x = start_x; x < start_x + width; ++x) {
-            colour_buffer[(window_width * y) + x] = colour;
+            draw_pixel(x, y, colour);
         }
     }
 }
