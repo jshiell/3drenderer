@@ -20,12 +20,6 @@ int read_face(FILE* fp, char* buffer) {
     return atoi(buffer);
 }
 
-float read_vertex(FILE* fp) {
-    float vertex;
-    fscanf(fp, "%f", &vertex);
-    return vertex;
-}
-
 bool load_obj_file_data(char* filename) {
     FILE* fp = fopen(filename, "r");
     if (fp == NULL) {
@@ -37,11 +31,8 @@ bool load_obj_file_data(char* filename) {
 
     while ((read = fscanf(fp, "%s", buffer)) == 1) {
         if (strcmp(buffer, "v") == 0) {
-            vec3_t vertex = {
-                .x = read_vertex(fp),
-                .y = read_vertex(fp),
-                .z = read_vertex(fp)
-            };
+            vec3_t vertex;
+            fscanf(fp, "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
             array_push(mesh.vertices, vertex);
         } else if (strcmp(buffer, "f") == 0) {
             face_t face = {
