@@ -101,9 +101,16 @@ void render(void) {
 
     for (int i = 0; i < N_MESH_FACES; ++i) {
         triangle_t triangle = triangles_to_render[i];
+        
         draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFFFF00);
         draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFFFF00);
         draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFFFF00);
+
+        draw_triangle(
+            triangle.points[0].x, triangle.points[0].y,
+            triangle.points[1].x, triangle.points[1].y,
+            triangle.points[2].x, triangle.points[2].y,
+            0xFF00FF00);
     }
 
     render_colour_buffer();

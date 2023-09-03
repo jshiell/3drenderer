@@ -1,3 +1,4 @@
+#include <math.h>
 #include "display.h"
 
 SDL_Window* window = NULL;
@@ -54,6 +55,33 @@ void draw_pixel(int x, int y, uint32_t colour) {
     if (x>= 0 && x < window_width && y>=0 && y < window_height) {
         colour_buffer[(window_width * y) + x] = colour;
     }
+}
+
+void draw_line(int x0, int y0, int x1, int y1, uint32_t colour) {
+    // https://en.wikipedia.org/wiki/Digital_differential_analyzer_(graphics_algorithm)
+
+    int delta_x = x1 - x0;
+    int delta_y = y1 - y0;
+
+    int longest_side_length = abs(delta_x) >= abs(delta_y) ? abs(delta_x) : abs(delta_y);
+
+    float x_inc = delta_x / (float) longest_side_length;
+    float y_inc = delta_y / (float) longest_side_length;
+
+    float current_x = x0;
+    float current_y = y0;
+    for (int i = 0; i <= longest_side_length; ++i) {
+        draw_pixel(round(current_x), round(current_y), colour);
+
+        current_x += x_inc;
+        current_y += y_inc;
+    }
+}
+
+void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t colour) {
+    draw_line(x0, y0, x1, y1, colour);
+    draw_line(x1, y1, x2, y2, colour);
+    draw_line(x2, y2, x0, y0, colour);
 }
 
 void draw_rect(int start_x, int start_y, int width, int height, uint32_t colour) {
