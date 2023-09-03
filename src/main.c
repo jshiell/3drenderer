@@ -26,7 +26,11 @@ void setup(void) {
         window_height
     );
 
-    load_cube_mesh_data();
+    char* filename = "assets/f22.obj";
+    if (!load_obj_file_data(filename)) {
+        fprintf(stderr, "Failed to load obj file data from %s\n", filename);
+        exit(1);
+    }
 }
 
 void process_input(void) {
