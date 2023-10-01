@@ -29,11 +29,12 @@ void setup(void) {
         window_height
     );
 
-    char* filename = "assets/cube.obj";
-    if (!load_obj_file_data(filename)) {
-        fprintf(stderr, "Failed to load obj file data from %s\n", filename);
-        exit(1);
-    }
+    // char* filename = "assets/cube.obj";
+    // if (!load_obj_file_data(filename)) {
+    //     fprintf(stderr, "Failed to load obj file data from %s\n", filename);
+    //     exit(1);
+    // }
+    load_cube_mesh_data();
 }
 
 void process_input(void) {
@@ -141,18 +142,23 @@ void update(void) {
         }
 
         // project
-        triangle_t projected_triangle;
-
+        vec2_t projected_points[3];
         for (int j = 0; j < 3; ++j) {
-            vec2_t projected_point = project(transformed_vertices[j]);
+            projected_points[j] = project(transformed_vertices[j]);
 
             // translate to middle of screen
-            projected_point.x += (window_width / 2);
-            projected_point.y += (window_height / 2);
-
-            projected_triangle.points[j] = projected_point;
+            projected_points[j].x += (window_width / 2);
+            projected_points[j].y += (window_height / 2);
         }
 
+        triangle_t projected_triangle = {
+            .points = {
+                { projected_points[0].x , projected_points[0].y },
+                { projected_points[1].x , projected_points[1].y },
+                { projected_points[2].x , projected_points[2].y }
+            },
+            .colour = mesh_face.colour
+        };
         array_push(triangles_to_render, projected_triangle);
     }
 }
@@ -169,7 +175,7 @@ void render(void) {
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
                 triangle.points[2].x, triangle.points[2].y,
-                0xFF555555);
+                triangle.colour);
         }
 
         if (render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX || render_method == RENDER_FILL_TRIANGLE_WIRE) {
