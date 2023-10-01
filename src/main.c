@@ -15,16 +15,10 @@ int previous_frame_time = 0;
 vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
 float fov_factor = 640;
 
-enum render_mode_t {
-    RENDER_MODE_WIREFRAME_POINTS,
-    RENDER_MODE_WIREFRAME,
-    RENDER_MODE_WIREFRAME_FILL,
-    RENDER_MODE_FILL,
-};
-enum render_mode_t render_mode = RENDER_MODE_WIREFRAME_POINTS;
-bool back_face_culling = true;
-
 void setup(void) {
+    render_method = RENDER_WIRE;
+    cull_method = CULL_BACKFACE;
+
     colour_buffer = (uint32_t*) malloc(sizeof(uint32_t) * window_width * window_height);
 
     colour_buffer_texture = SDL_CreateTexture(
@@ -56,19 +50,22 @@ void process_input(void) {
                     is_running = false;
                     break;
                 case SDLK_c:
-                    back_face_culling = !back_face_culling;
+                    cull_method = CULL_BACKFACE;
+                    break;
+                case SDLK_d:
+                    cull_method = CULL_NONE;
                     break;
                 case SDLK_1:
-                    render_mode = RENDER_MODE_WIREFRAME_POINTS;
+                    render_method = RENDER_WIRE_VERTEX;
                     break;
                 case SDLK_2:
-                    render_mode = RENDER_MODE_WIREFRAME;
+                    render_method = RENDER_WIRE;
                     break;
                 case SDLK_3:
-                    render_mode = RENDER_MODE_FILL;
+                    render_method = RENDER_FILL_TRIANGLE;
                     break;
                 case SDLK_4:
-                    render_mode = RENDER_MODE_WIREFRAME_FILL;
+                    render_method = RENDER_FILL_TRIANGLE_WIRE;
                     break;
             }
             break;
@@ -121,7 +118,7 @@ void update(void) {
         }
 
         // back-face culling
-        if (back_face_culling) {
+        if (cull_method == CULL_BACKFACE) {
             vec3_t vector_a = transformed_vertices[0]; /*   A  */  
             vec3_t vector_b = transformed_vertices[1]; /*  / \ */
             vec3_t vector_c = transformed_vertices[2]; /* C--B */
@@ -167,15 +164,15 @@ void render(void) {
     for (int i = 0; i < num_triangles; ++i) {
         triangle_t triangle = triangles_to_render[i];
 
-        if (render_mode == RENDER_MODE_FILL || render_mode == RENDER_MODE_WIREFRAME_FILL) {
+        if (render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIRE) {
             draw_filled_triangle(
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
                 triangle.points[2].x, triangle.points[2].y,
-                0xFFCCCCCC);
+                0xFF555555);
         }
 
-        if (render_mode != RENDER_MODE_FILL) {
+        if (render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX || render_method == RENDER_FILL_TRIANGLE_WIRE) {
             draw_triangle(
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
@@ -183,10 +180,10 @@ void render(void) {
                 0xFFFFFFFF);
         }
 
-        if (render_mode == RENDER_MODE_WIREFRAME_POINTS) {
-            draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFF0000);
-            draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFF0000);
-            draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFF0000);
+        if (render_method == RENDER_WIRE_VERTEX) {
+            draw_rect(triangle.points[0].x - 3, triangle.points[0].y - 3, 6, 6, 0xFFFF0000);
+            draw_rect(triangle.points[1].x - 3, triangle.points[1].y - 3, 6, 6, 0xFFFF0000);
+            draw_rect(triangle.points[2].x - 3, triangle.points[2].y - 3, 6, 6, 0xFFFF0000);
         }
     }
 
