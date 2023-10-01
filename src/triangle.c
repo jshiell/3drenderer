@@ -64,3 +64,10 @@ void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32
         fill_flat_top_triangle(x1, y1, mx, my, x2, y2, colour);
     }
 }
+
+int triangle_compare_avg_depth(const void* a, const void* b) {
+    triangle_t* triangle_a = (triangle_t*) a;
+    triangle_t* triangle_b = (triangle_t*) b;
+
+    return (triangle_a->avg_depth > triangle_b->avg_depth) - (triangle_a->avg_depth < triangle_b->avg_depth);
+}

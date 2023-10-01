@@ -165,7 +165,7 @@ void update(void) {
         array_push(triangles_to_render, projected_triangle);
     }
 
-    // TODO sort triangles by average depth
+    qsort(triangles_to_render, array_length(triangles_to_render), sizeof(triangle_t), triangle_compare_avg_depth);
 }
 
 void render(void) {
