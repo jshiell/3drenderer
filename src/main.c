@@ -37,6 +37,7 @@ void setup(void) {
 
     float a_length = vec3_length(a);
     float b_length = vec3_length(b);
+    vec3_t add_ab = vec3_add(a, b);
 }
 
 void process_input(void) {
