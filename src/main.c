@@ -151,19 +151,26 @@ void update(void) {
             projected_points[j].y += (window_height / 2);
         }
 
+        float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0f;
+
         triangle_t projected_triangle = {
             .points = {
                 { projected_points[0].x , projected_points[0].y },
                 { projected_points[1].x , projected_points[1].y },
                 { projected_points[2].x , projected_points[2].y }
             },
-            .colour = mesh_face.colour
+            .colour = mesh_face.colour,
+            .avg_depth = avg_depth
         };
         array_push(triangles_to_render, projected_triangle);
     }
+
+    // TODO sort triangles by average depth
 }
 
 void render(void) {
+    SDL_RenderClear(renderer);
+
     draw_grid();
 
     int num_triangles = array_length(triangles_to_render);
