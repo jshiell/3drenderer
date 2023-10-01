@@ -31,6 +31,12 @@ void setup(void) {
         fprintf(stderr, "Failed to load obj file data from %s\n", filename);
         exit(1);
     }
+
+    vec3_t a = { 2.5, 6.4, 3.0 };
+    vec3_t b = { -2.2, 1.4, -1.0 };
+
+    float a_length = vec3_length(a);
+    float b_length = vec3_length(b);
 }
 
 void process_input(void) {
