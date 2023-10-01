@@ -21,6 +21,22 @@ vec2_t vec2_sub(vec2_t a, vec2_t b) {
     return result;
 }
 
+vec2_t vec2_mul(vec2_t v, float factor) {
+    vec2_t result = {
+        .x = v.x * factor,
+        .y = v.y * factor
+    };
+    return result;
+}
+
+vec2_t vec2_div(vec2_t v, float factor) {
+    vec2_t result = {
+        .x = v.x / factor,
+        .y = v.y / factor
+    };
+    return result;
+}
+
 float vec3_length(vec3_t v) {
     return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
@@ -41,6 +57,23 @@ vec3_t vec3_sub(vec3_t a, vec3_t b) {
         .z = a.z - b.z
     };
     return result;
+}
+vec3_t vec3_mul(vec3_t v, float factor) {
+    vec3_t results = {
+        .x = v.x * factor,
+        .y = v.y * factor,
+        .z = v.z * factor
+    };
+    return results;
+}
+
+vec3_t vec3_div(vec3_t v, float factor) {
+    vec3_t results = {
+        .x = v.x / factor,
+        .y = v.y / factor,
+        .z = v.z / factor
+    };
+    return results;
 }
 
 vec3_t vec3_rotate_x(vec3_t v, float angle) {
