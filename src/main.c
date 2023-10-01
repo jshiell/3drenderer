@@ -12,7 +12,7 @@ triangle_t* triangles_to_render = NULL;
 bool is_running = false;
 int previous_frame_time = 0;
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = -5 };
+vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
 float fov_factor = 640;
 
 void setup(void) {
@@ -26,18 +26,11 @@ void setup(void) {
         window_height
     );
 
-    char* filename = "assets/f22.obj";
+    char* filename = "assets/cube.obj";
     if (!load_obj_file_data(filename)) {
         fprintf(stderr, "Failed to load obj file data from %s\n", filename);
         exit(1);
     }
-
-    vec3_t a = { 2.5, 6.4, 3.0 };
-    vec3_t b = { -2.2, 1.4, -1.0 };
-
-    float a_length = vec3_length(a);
-    float b_length = vec3_length(b);
-    vec3_t add_ab = vec3_add(a, b);
 }
 
 void process_input(void) {
@@ -74,8 +67,8 @@ void update(void) {
     triangles_to_render = NULL;
 
     mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.00;
-    mesh.rotation.z += 0.00;
+    mesh.rotation.y += 0.01;
+    mesh.rotation.z += 0.01;
 
     for (int i = 0; i < array_length(mesh.faces); ++i) {
         face_t mesh_face = mesh.faces[i];
@@ -85,7 +78,8 @@ void update(void) {
         face_vertices[1] = mesh.vertices[mesh_face.b - 1];
         face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-        triangle_t projected_triangle;
+        // transform
+        vec3_t transformed_vertices[3];
 
         for (int j = 0; j < 3; ++j) {
             vec3_t transformed_vertex = face_vertices[j];
@@ -95,9 +89,33 @@ void update(void) {
             transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z);
 
             // translate away from camera
-            transformed_vertex.z -= camera_position.z;            
+            transformed_vertex.z += 5;
 
-            vec2_t projected_point = project(transformed_vertex);
+            transformed_vertices[j] = transformed_vertex;
+        }
+
+        // back-face culling
+        vec3_t vector_a = transformed_vertices[0]; /*   A  */  
+        vec3_t vector_b = transformed_vertices[1]; /*  / \ */
+        vec3_t vector_c = transformed_vertices[2]; /* C--B */
+
+        vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+        vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+        vec3_t normal = vec3_cross(vector_ab, vector_ac);
+
+        // find vector from triangle to the camera
+        vec3_t camera_ray = vec3_sub(camera_position, vector_a);
+
+        float dot_normal_camera = vec3_dot(normal, camera_ray);
+        if (dot_normal_camera < 0) {
+            continue;
+        }
+
+        // project
+        triangle_t projected_triangle;
+
+        for (int j = 0; j < 3; ++j) {
+            vec2_t projected_point = project(transformed_vertices[j]);
 
             // translate to middle of screen
             projected_point.x += (window_width / 2);
