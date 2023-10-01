@@ -101,7 +101,11 @@ void update(void) {
 
         vec3_t vector_ab = vec3_sub(vector_b, vector_a);
         vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+        vec3_normalise(&vector_ab);
+        vec3_normalise(&vector_ac);
+
         vec3_t normal = vec3_cross(vector_ab, vector_ac);
+        vec3_normalise(&normal);
 
         // find vector from triangle to the camera
         vec3_t camera_ray = vec3_sub(camera_position, vector_a);
