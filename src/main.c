@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include "array.h"
 #include "display.h"
+#include "matrix.h"
 #include "mesh.h"
 #include "vector.h"
 
@@ -94,6 +95,11 @@ void update(void) {
     mesh.rotation.y += 0.01;
     mesh.rotation.z += 0.01;
 
+    mesh.scale.x += 0.002;
+    mesh.scale.y += 0.001;
+
+    mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+
     for (int i = 0; i < array_length(mesh.faces); ++i) {
         face_t mesh_face = mesh.faces[i];
 
@@ -103,12 +109,12 @@ void update(void) {
         face_vertices[2] = mesh.vertices[mesh_face.c - 1];
 
         // transform
-        vec3_t transformed_vertices[3];
+        vec4_t transformed_vertices[3];
 
         for (int j = 0; j < 3; ++j) {
-            vec3_t transformed_vertex = face_vertices[j];
+            vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
 
-            // TODO scale with matrix
+            transformed_vertex = mat4_mul_vec4(scale_matrix, transformed_vertex);
 
             // translate away from camera
             transformed_vertex.z += 5;
@@ -118,9 +124,9 @@ void update(void) {
 
         // back-face culling
         if (cull_method == CULL_BACKFACE) {
-            vec3_t vector_a = transformed_vertices[0]; /*   A  */  
-            vec3_t vector_b = transformed_vertices[1]; /*  / \ */
-            vec3_t vector_c = transformed_vertices[2]; /* C--B */
+            vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]); /*   A  */  
+            vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]); /*  / \ */
+            vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]); /* C--B */
 
             vec3_t vector_ab = vec3_sub(vector_b, vector_a);
             vec3_t vector_ac = vec3_sub(vector_c, vector_a);
@@ -142,7 +148,7 @@ void update(void) {
         // project
         vec2_t projected_points[3];
         for (int j = 0; j < 3; ++j) {
-            projected_points[j] = project(transformed_vertices[j]);
+            projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]));
 
             // translate to middle of screen
             projected_points[j].x += (window_width / 2);
