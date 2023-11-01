@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include "array.h"
 #include "display.h"
+#include "light.h"
 #include "matrix.h"
 #include "mesh.h"
 #include "vector.h"
@@ -36,12 +37,12 @@ void setup(void) {
     float zfar = 100.0;
     proj_matrix = mat4_make_perspective(fov, aspect_ratio, znear, zfar);
 
-    // char* filename = "assets/cube.obj";
-    // if (!load_obj_file_data(filename)) {
-    //     fprintf(stderr, "Failed to load obj file data from %s\n", filename);
-    //     exit(1);
-    // }
-    load_cube_mesh_data();
+    char* filename = "assets/f22.obj";
+    if (!load_obj_file_data(filename)) {
+        fprintf(stderr, "Failed to load obj file data from %s\n", filename);
+        exit(1);
+    }
+    // load_cube_mesh_data();
 }
 
 void process_input(void) {
@@ -89,7 +90,7 @@ void update(void) {
 
     triangles_to_render = NULL;
 
-    mesh.rotation.x += 0.01;
+    mesh.rotation.x += 0.001;
     // mesh.rotation.y += 0.01;
     // mesh.rotation.z += 0.01;
     // mesh.scale.x += 0.002;
@@ -127,19 +128,19 @@ void update(void) {
         }
 
         // back-face culling
+        vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]); /*   A  */  
+        vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]); /*  / \ */
+        vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]); /* C--B */
+
+        vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+        vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+        vec3_normalise(&vector_ab);
+        vec3_normalise(&vector_ac);
+
+        vec3_t normal = vec3_cross(vector_ab, vector_ac);
+        vec3_normalise(&normal);
+
         if (cull_method == CULL_BACKFACE) {
-            vec3_t vector_a = vec3_from_vec4(transformed_vertices[0]); /*   A  */  
-            vec3_t vector_b = vec3_from_vec4(transformed_vertices[1]); /*  / \ */
-            vec3_t vector_c = vec3_from_vec4(transformed_vertices[2]); /* C--B */
-
-            vec3_t vector_ab = vec3_sub(vector_b, vector_a);
-            vec3_t vector_ac = vec3_sub(vector_c, vector_a);
-            vec3_normalise(&vector_ab);
-            vec3_normalise(&vector_ac);
-
-            vec3_t normal = vec3_cross(vector_ab, vector_ac);
-            vec3_normalise(&normal);
-
             // find vector from triangle to the camera
             vec3_t camera_ray = vec3_sub(camera_position, vector_a);
 
@@ -165,15 +166,20 @@ void update(void) {
 
         float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0f;
 
+        // flat shading, base intensity on alignment with inverse of the light direction
+        float light_intensity_factor = -vec3_dot(normal, light.direction);
+        uint32_t triangle_colour = light_apply_intensity(mesh_face.colour, light_intensity_factor);
+
         triangle_t projected_triangle = {
             .points = {
                 { projected_points[0].x , projected_points[0].y },
                 { projected_points[1].x , projected_points[1].y },
                 { projected_points[2].x , projected_points[2].y }
             },
-            .colour = mesh_face.colour,
+            .colour = triangle_colour,
             .avg_depth = avg_depth
         };
+
         array_push(triangles_to_render, projected_triangle);
     }
 
