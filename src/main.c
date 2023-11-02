@@ -90,7 +90,7 @@ void update(void) {
 
     triangles_to_render = NULL;
 
-    mesh.rotation.x += 0.001;
+    mesh.rotation.x += 0.005;
     // mesh.rotation.y += 0.01;
     // mesh.rotation.z += 0.01;
     // mesh.scale.x += 0.002;
@@ -158,6 +158,9 @@ void update(void) {
             // scale to viewport
             projected_points[j].x *= (window_width / 2.0);
             projected_points[j].y *= (window_height / 2.0);
+
+            // invert y values to account for flipped y axis
+            projected_points[j].y *= -1;
 
             // translate to middle of screen
             projected_points[j].x += (window_width / 2.0);
