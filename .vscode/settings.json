@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "display.h": "c",
-        "array.h": "c"
+        "array.h": "c",
+        "vector.h": "c"
     }
 }
