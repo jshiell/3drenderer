@@ -69,5 +69,5 @@ int triangle_compare_avg_depth(const void* a, const void* b) {
     triangle_t* triangle_a = (triangle_t*) a;
     triangle_t* triangle_b = (triangle_t*) b;
 
-    return (triangle_a->avg_depth > triangle_b->avg_depth) - (triangle_a->avg_depth < triangle_b->avg_depth);
+    return (triangle_a->avg_depth < triangle_b->avg_depth) - (triangle_a->avg_depth > triangle_b->avg_depth);
 }
