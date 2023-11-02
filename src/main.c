@@ -103,8 +103,8 @@ void update(void) {
     triangles_to_render = NULL;
 
     mesh.rotation.x += 0.005;
-    // mesh.rotation.y += 0.01;
-    // mesh.rotation.z += 0.01;
+    mesh.rotation.y += 0.01;
+    mesh.rotation.z += 0.01;
     // mesh.scale.x += 0.002;
     // mesh.scale.y += 0.001;
     // mesh.translation.x += 0.01;
@@ -223,7 +223,7 @@ void render(void) {
                 triangle.colour);
         }
 
-        if (render_method == RENDER_TEXTURED || render_method == RENDER_FILL_TRIANGLE_WIRE) {
+        if (render_method == RENDER_TEXTURED || render_method == RENDER_TEXTURED_WIRE) {
             draw_textured_triangle(
                 triangle.points[0].x, triangle.points[0].y, triangle.texcoords[0].u, triangle.texcoords[0].v,
                 triangle.points[1].x, triangle.points[1].y, triangle.texcoords[1].u, triangle.texcoords[1].v,
