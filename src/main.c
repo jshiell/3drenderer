@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include "upng.h"
 #include "array.h"
 #include "display.h"
 #include "light.h"
@@ -27,7 +28,7 @@ void setup(void) {
 
     colour_buffer_texture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_ARGB8888,
+        SDL_PIXELFORMAT_RGBA32,
         SDL_TEXTUREACCESS_STREAMING,
         window_width,
         window_height
@@ -39,16 +40,13 @@ void setup(void) {
     float zfar = 100.0;
     proj_matrix = mat4_make_perspective(fov, aspect_ratio, znear, zfar);
 
-    mesh_texture = (uint32_t*) REDBRICK_TEXTURE;
-    texture_width = 64;
-    texture_height = 64;
-
     // char* filename = "assets/f22.obj";
     // if (!load_obj_file_data(filename)) {
     //     fprintf(stderr, "Failed to load obj file data from %s\n", filename);
     //     exit(1);
     // }
     load_cube_mesh_data();
+    load_png_texture_data("assets/cube.png");
 }
 
 void process_input(void) {
@@ -102,9 +100,9 @@ void update(void) {
 
     triangles_to_render = NULL;
 
-    mesh.rotation.x += 0.005;
-    mesh.rotation.y += 0.01;
-    mesh.rotation.z += 0.01;
+    // mesh.rotation.x += 0.005;
+    mesh.rotation.y += 0.005;
+    // mesh.rotation.z += 0.01;
     // mesh.scale.x += 0.002;
     // mesh.scale.y += 0.001;
     // mesh.translation.x += 0.01;
@@ -256,6 +254,9 @@ void render(void) {
 }
 
 void free_resources(void) {
+    if (png_texture != NULL) {
+        upng_free(png_texture);
+    }
     free(colour_buffer);
     array_free(mesh.faces);
     array_free(mesh.vertices);
