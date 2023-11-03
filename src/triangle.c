@@ -8,64 +8,6 @@ void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t colo
     draw_line(x2, y2, x0, y0, colour);
 }
 
-void fill_flat_bottom_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t colour) {
-    float inv_slope_1 = (float) (x1 - x0) / (y1 - y0);
-    float inv_slope_2 = (float) (x2 - x0) / (y2 - y0);
-
-    float x_start = x0;
-    float x_end = x0;
-
-    for (int y = y0; y <= y2; ++y) {
-        draw_line(x_start, y, x_end, y, colour);
-
-        x_start += inv_slope_1;
-        x_end += inv_slope_2;
-    }
-}
-
-void fill_flat_top_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t colour) {
-    float inv_slope_1 = (float) (x2 - x0) / (y2 - y0);
-    float inv_slope_2 = (float) (x2 - x1) / (y2 - y1);
-
-    float x_start = x2;
-    float x_end = x2;
-
-    for (int y = y2; y >= y0; --y) {
-        draw_line(x_start, y, x_end, y, colour);
-
-        x_start -= inv_slope_1;
-        x_end -= inv_slope_2;
-    }
-}
-
-void draw_filled_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t colour) {
-    if (y0 > y1) {
-        int_swap(&y0, &y1);
-        int_swap(&x0, &x1);
-    }
-    if (y1 > y2) {
-        int_swap(&y1, &y2);
-        int_swap(&x1, &x2);
-    }
-    if (y0 > y1) {
-        int_swap(&y0, &y1);
-        int_swap(&x0, &x1);
-    }
-
-    if (y1 == y2) {
-        fill_flat_bottom_triangle(x0, y0, x1, y1, x2, y2, colour);
-    } else if (y0 == y1) {
-        fill_flat_top_triangle(x0, y0, x1, y1, x2, y2, colour);
-    } else {
-        // find mid-point using triangle similarity
-        int my = y1;
-        int mx = (float) ((x2 - x0) * (y1 - y0)) / (float) (y2 - y0) + x0;
-
-        fill_flat_bottom_triangle(x0, y0, x1, y1, mx, my, colour);
-        fill_flat_top_triangle(x1, y1, mx, my, x2, y2, colour);
-    }
-}
-
 vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p) {
     vec2_t ac = vec2_sub(c, a);
     vec2_t ab = vec2_sub(b, a);
@@ -84,6 +26,116 @@ vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p) {
         .z = gamma
     };
     return weights;
+}
+
+void draw_pixel_depth(
+    int x, int y, int32_t colour,
+    vec4_t point_a, vec4_t point_b, vec4_t point_c,
+    float recipricol_w_a, float recipricol_w_b, float recipricol_w_c
+) {
+    vec2_t p = { .x = x, .y = y };
+    vec2_t a = vec2_from_vec4(point_a);
+    vec2_t b = vec2_from_vec4(point_b);
+    vec2_t c = vec2_from_vec4(point_c);
+    vec3_t weights = barycentric_weights(a, b, c, p);
+
+    float alpha = weights.x;
+    float beta = weights.y;
+    float gamma = weights.z;
+
+    float interpolated_recipricol_w = recipricol_w_a * alpha + recipricol_w_b * beta + recipricol_w_c * gamma;
+
+    float z_buffer_w = 1.0 - interpolated_recipricol_w;
+    if (z_buffer_w < z_buffer[(window_width * y) + x]) {
+        draw_pixel(x, y, colour);
+        z_buffer[(window_width * y) + x] = z_buffer_w;
+    }
+}
+
+void draw_filled_triangle(
+    int x0, int y0, float z0, float w0,
+    int x1, int y1, float z1, float w1,
+    int x2, int y2, float z2, float w2,
+    uint32_t colour
+) {
+    if (y0 > y1) {
+        int_swap(&y0, &y1);
+        int_swap(&x0, &x1);
+        float_swap(&z0, &z1);
+        float_swap(&w0, &w1);
+    }
+    if (y1 > y2) {
+        int_swap(&y1, &y2);
+        int_swap(&x1, &x2);
+        float_swap(&z1, &z2);
+        float_swap(&w1, &w2);
+    }
+    if (y0 > y1) {
+        int_swap(&y0, &y1);
+        int_swap(&x0, &x1);
+        float_swap(&z0, &z1);
+        float_swap(&w0, &w1);
+    }
+
+    vec4_t point_a = { .x = x0, .y = y0, .z = z0, .w = w0 };
+    vec4_t point_b = { .x = x1, .y = y1, .z = z1, .w = w1  };
+    vec4_t point_c = { .x = x2, .y = y2, .z = z2, .w = w2  };
+
+    float recipricol_w_a = 1.0 / point_a.w;
+    float recipricol_w_b = 1.0 / point_b.w;
+    float recipricol_w_c = 1.0 / point_c.w;
+
+    // render flat-bottom triangle
+    float inv_slope_1 = 0;
+    float inv_slope_2 = 0;
+
+    if (y1 - y0 != 0) inv_slope_1 = (float) (x1 - x0) / abs(y1 - y0);
+    if (y2 - y0 != 0) inv_slope_2 = (float) (x2 - x0) / abs(y2 - y0);
+
+    if (y1 - y0 != 0) {
+        for (int y = y0; y <= y1; ++y) {
+            int x_start = x1 + (y - y1) * inv_slope_1;
+            int x_end = x0 + (y - y0) * inv_slope_2;
+
+            if (x_end < x_start) {
+                int_swap(&x_start, &x_end);
+            }
+
+            for (int x = x_start; x < x_end; ++x) {
+                draw_pixel_depth(
+                    x, y, colour,
+                    point_a, point_b, point_c,
+                    recipricol_w_a, recipricol_w_b, recipricol_w_c
+                );
+            }
+        }
+    }
+
+    // render flat-top triangle
+    inv_slope_1 = 0;
+    inv_slope_2 = 0;
+
+    if (y2 - y1 != 0) inv_slope_1 = (float) (x2 - x1) / abs(y2 - y1);
+    if (y2 - y0 != 0) inv_slope_2 = (float) (x2 - x0) / abs(y2 - y0);
+
+    if (y2 - y1 != 0) {
+        for (int y = y1; y <= y2; ++y) {
+            int x_start = x1 + (y - y1) * inv_slope_1;
+            int x_end = x0 + (y - y0) * inv_slope_2;
+
+            if (x_end < x_start) {
+                int_swap(&x_start, &x_end);
+            }
+
+            for (int x = x_start; x < x_end; ++x) {
+                draw_pixel_depth(
+                    x, y, colour,
+                    point_a, point_b, point_c,
+                    recipricol_w_a, recipricol_w_b, recipricol_w_c
+                );
+            }
+        }
+    }
 }
 
 void draw_texel(
@@ -229,11 +281,4 @@ void draw_textured_triangle(
             }
         }
     }
-}
-
-int triangle_compare_avg_depth(const void* a, const void* b) {
-    triangle_t* triangle_a = (triangle_t*) a;
-    triangle_t* triangle_b = (triangle_t*) b;
-
-    return (triangle_a->avg_depth < triangle_b->avg_depth) - (triangle_a->avg_depth > triangle_b->avg_depth);
 }

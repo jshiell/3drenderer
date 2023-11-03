@@ -178,8 +178,6 @@ void update(void) {
             projected_points[j].y += (window_height / 2.0);
         }
 
-        float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0f;
-
         // flat shading, base intensity on alignment with inverse of the light direction
         float light_intensity_factor = -vec3_dot(normal, light.direction);
         uint32_t triangle_colour = light_apply_intensity(mesh_face.colour, light_intensity_factor);
@@ -195,14 +193,11 @@ void update(void) {
                 { mesh_face.b_uv.u, mesh_face.b_uv.v },
                 { mesh_face.c_uv.u, mesh_face.c_uv.v }
             },
-            .colour = triangle_colour,
-            .avg_depth = avg_depth
+            .colour = triangle_colour
         };
 
         array_push(triangles_to_render, projected_triangle);
     }
-
-    qsort(triangles_to_render, array_length(triangles_to_render), sizeof(triangle_t), triangle_compare_avg_depth);
 }
 
 void render(void) {
@@ -216,9 +211,9 @@ void render(void) {
 
         if (render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIRE) {
             draw_filled_triangle(
-                triangle.points[0].x, triangle.points[0].y,
-                triangle.points[1].x, triangle.points[1].y,
-                triangle.points[2].x, triangle.points[2].y,
+                triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w,
+                triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w,
+                triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w,
                 triangle.colour);
         }
 
