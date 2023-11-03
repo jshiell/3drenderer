@@ -28,7 +28,7 @@ vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p) {
     return weights;
 }
 
-void draw_pixel_depth(
+void draw_triangle_pixel(
     int x, int y, int32_t colour,
     vec4_t point_a, vec4_t point_b, vec4_t point_c,
     float recipricol_w_a, float recipricol_w_b, float recipricol_w_c
@@ -102,7 +102,7 @@ void draw_filled_triangle(
             }
 
             for (int x = x_start; x < x_end; ++x) {
-                draw_pixel_depth(
+                draw_triangle_pixel(
                     x, y, colour,
                     point_a, point_b, point_c,
                     recipricol_w_a, recipricol_w_b, recipricol_w_c
@@ -128,7 +128,7 @@ void draw_filled_triangle(
             }
 
             for (int x = x_start; x < x_end; ++x) {
-                draw_pixel_depth(
+                draw_triangle_pixel(
                     x, y, colour,
                     point_a, point_b, point_c,
                     recipricol_w_a, recipricol_w_b, recipricol_w_c
@@ -138,7 +138,7 @@ void draw_filled_triangle(
     }
 }
 
-void draw_texel(
+void draw_triangle_texel(
     int x, int y, uint32_t* texture,
     vec4_t point_a, vec4_t point_b, vec4_t point_c,
     float recipricol_w_a, float recipricol_w_b, float recipricol_w_c,
@@ -245,7 +245,7 @@ void draw_textured_triangle(
             }
 
             for (int x = x_start; x < x_end; ++x) {
-                draw_texel(
+                draw_triangle_texel(
                     x, y, texture,
                     point_a, point_b, point_c,
                     recipricol_w_a, recipricol_w_b, recipricol_w_c,
@@ -272,7 +272,7 @@ void draw_textured_triangle(
             }
 
             for (int x = x_start; x < x_end; ++x) {
-                draw_texel(
+                draw_triangle_texel(
                     x, y, texture,
                     point_a, point_b, point_c,
                     recipricol_w_a, recipricol_w_b, recipricol_w_c,
