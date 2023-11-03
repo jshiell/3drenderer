@@ -41,12 +41,12 @@ void setup(void) {
     proj_matrix = mat4_make_perspective(fov, aspect_ratio, znear, zfar);
 
     // load_cube_mesh_data();
-    char* filename = "assets/cube.obj";
+    char* filename = "assets/drone.obj";
     if (!load_obj_file_data(filename)) {
         fprintf(stderr, "Failed to load obj file data from %s\n", filename);
         exit(1);
     }
-    load_png_texture_data("assets/cube.png");
+    load_png_texture_data("assets/drone.png");
 }
 
 void process_input(void) {
@@ -100,7 +100,7 @@ void update(void) {
 
     triangles_to_render = NULL;
 
-    // mesh.rotation.x += 0.005;
+    // mesh.rotation.x += 0.05;
     mesh.rotation.y += 0.005;
     // mesh.rotation.z += 0.01;
     // mesh.scale.x += 0.002;
