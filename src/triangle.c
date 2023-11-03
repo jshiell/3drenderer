@@ -114,8 +114,8 @@ void draw_texel(
     interpolated_u /= interpolated_recipricol_w;
     interpolated_v /= interpolated_recipricol_w;
 
-    int tex_x = abs((int) (texture_width * interpolated_u));
-    int tex_y = abs((int) (texture_height * interpolated_v));
+    int tex_x = abs((int) (texture_width * interpolated_u)) % texture_width;
+    int tex_y = abs((int) (texture_height * interpolated_v)) % texture_height;
 
     draw_pixel(x, y, texture[tex_y * texture_width + tex_x]);
 }
