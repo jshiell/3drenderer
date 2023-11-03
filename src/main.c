@@ -12,7 +12,9 @@
 #include "triangle.h"
 #include "vector.h"
 
-triangle_t* triangles_to_render = NULL;
+#define MAX_TRIANGLES_PER_MESH 10000
+triangle_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
+int num_triangles_to_render = 0;
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -99,7 +101,7 @@ void update(void) {
     }
     previous_frame_time = SDL_GetTicks();
 
-    triangles_to_render = NULL;
+    num_triangles_to_render = 0;
 
     // mesh.rotation.x += 0.05;
     mesh.rotation.y += 0.005;
@@ -196,7 +198,9 @@ void update(void) {
             .colour = triangle_colour
         };
 
-        array_push(triangles_to_render, projected_triangle);
+        if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH) {
+            triangles_to_render[num_triangles_to_render++] = projected_triangle;
+        }
     }
 }
 
@@ -205,8 +209,7 @@ void render(void) {
 
     draw_grid();
 
-    int num_triangles = array_length(triangles_to_render);
-    for (int i = 0; i < num_triangles; ++i) {
+    for (int i = 0; i < num_triangles_to_render; ++i) {
         triangle_t triangle = triangles_to_render[i];
 
         if (render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIRE) {
@@ -240,8 +243,6 @@ void render(void) {
             draw_rect(triangle.points[2].x - 3, triangle.points[2].y - 3, 6, 6, 0xFFFF0000);
         }
     }
-
-    array_free(triangles_to_render);
 
     render_colour_buffer();
     clear_colour_buffer(0xFF000000);
