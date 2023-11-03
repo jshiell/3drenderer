@@ -151,6 +151,11 @@ void draw_textured_triangle(
         float_swap(&v0, &v1);
     }
 
+    // flip the v component to account for inverted in OBJ files
+    v0 = 1.0 - v0;
+    v1 = 1.0 - v1;
+    v2 = 1.0 - v2;
+
     vec4_t point_a = { .x = x0, .y = y0, .z = z0, .w = w0 };
     vec4_t point_b = { .x = x1, .y = y1, .z = z1, .w = w1  };
     vec4_t point_c = { .x = x2, .y = y2, .z = z2, .w = w2  };

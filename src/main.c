@@ -40,12 +40,12 @@ void setup(void) {
     float zfar = 100.0;
     proj_matrix = mat4_make_perspective(fov, aspect_ratio, znear, zfar);
 
-    // char* filename = "assets/f22.obj";
-    // if (!load_obj_file_data(filename)) {
-    //     fprintf(stderr, "Failed to load obj file data from %s\n", filename);
-    //     exit(1);
-    // }
-    load_cube_mesh_data();
+    // load_cube_mesh_data();
+    char* filename = "assets/cube.obj";
+    if (!load_obj_file_data(filename)) {
+        fprintf(stderr, "Failed to load obj file data from %s\n", filename);
+        exit(1);
+    }
     load_png_texture_data("assets/cube.png");
 }
 
@@ -125,9 +125,9 @@ void update(void) {
         face_t mesh_face = mesh.faces[i];
 
         vec3_t face_vertices[3];
-        face_vertices[0] = mesh.vertices[mesh_face.a - 1];
-        face_vertices[1] = mesh.vertices[mesh_face.b - 1];
-        face_vertices[2] = mesh.vertices[mesh_face.c - 1];
+        face_vertices[0] = mesh.vertices[mesh_face.a];
+        face_vertices[1] = mesh.vertices[mesh_face.b];
+        face_vertices[2] = mesh.vertices[mesh_face.c];
 
         // transform
         vec4_t transformed_vertices[3];
@@ -254,10 +254,8 @@ void render(void) {
 }
 
 void free_resources(void) {
-    if (png_texture != NULL) {
-        upng_free(png_texture);
-    }
     free(colour_buffer);
+    upng_free(png_texture);
     array_free(mesh.faces);
     array_free(mesh.vertices);
 }

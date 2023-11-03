@@ -68,21 +68,39 @@ bool load_obj_file_data(char* filename) {
 
     ssize_t read;
     char buffer[32];
+    tex2_t* texcoords = NULL;
 
     while ((read = fscanf(fp, "%s", buffer)) == 1) {
         if (strcmp(buffer, "v") == 0) {
             vec3_t vertex;
             fscanf(fp, "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
             array_push(mesh.vertices, vertex);
+
+        } else if (strcmp(buffer, "vt") == 0) {
+            tex2_t texcoord;
+            fscanf(fp, "%f %f", &texcoord.u, &texcoord.v);
+            array_push(texcoords, texcoord);
+
         } else if (strcmp(buffer, "f") == 0) {
+            int v_a_index, tc_a_index, v_b_index, tc_b_index, v_c_index, tc_c_index;
+            fscanf(fp, "%d/%d/%*d %d/%d/%*d %d/%d/%*d",
+                &v_a_index, &tc_a_index,
+                &v_b_index, &tc_b_index,
+                &v_c_index, &tc_c_index);
             face_t face = {
+                .a = v_a_index - 1,
+                .b = v_b_index - 1,
+                .c = v_c_index - 1,
+                .a_uv = texcoords[tc_a_index - 1],
+                .b_uv = texcoords[tc_b_index - 1],
+                .c_uv = texcoords[tc_c_index - 1],
                 .colour = 0xFFFFFFFF
             };
-            fscanf(fp, "%d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &face.a, &face.b, &face.c);
             array_push(mesh.faces, face);
         }
     }
 
+    array_free(texcoords);
     fclose(fp);
 
     return true;
