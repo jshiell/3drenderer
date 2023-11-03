@@ -89,6 +89,7 @@ vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p) {
 void draw_texel(
     int x, int y, uint32_t* texture,
     vec4_t point_a, vec4_t point_b, vec4_t point_c,
+    float recipricol_w_a, float recipricol_w_b, float recipricol_w_c,
     tex2_t a_uv, tex2_t b_uv, tex2_t c_uv
 ) {
     vec2_t p = { .x = x, .y = y };
@@ -106,10 +107,14 @@ void draw_texel(
     float interpolated_recipricol_w;
 
     // find u/w and v/w for each point using weights and factor of 1/w
-    interpolated_u = (a_uv.u / point_a.w) * alpha + (b_uv.u / point_b.w) * beta + (c_uv.u / point_c.w) * gamma;
-    interpolated_v = (a_uv.v / point_a.w) * alpha + (b_uv.v / point_b.w) * beta + (c_uv.v / point_c.w) * gamma;
+    interpolated_u = a_uv.u * recipricol_w_a * alpha
+        + b_uv.u * recipricol_w_b * beta
+        + c_uv.u * recipricol_w_c * gamma;
+    interpolated_v = a_uv.v * recipricol_w_a * alpha
+        + b_uv.v * recipricol_w_b * beta
+        + c_uv.v * recipricol_w_c * gamma;
 
-    interpolated_recipricol_w = (1 / point_a.w) * alpha + (1 / point_b.w) * beta + (1 / point_c.w) * gamma;
+    interpolated_recipricol_w = recipricol_w_a * alpha + recipricol_w_b * beta + recipricol_w_c * gamma;
 
     interpolated_u /= interpolated_recipricol_w;
     interpolated_v /= interpolated_recipricol_w;
@@ -163,6 +168,10 @@ void draw_textured_triangle(
     tex2_t b_uv = { .u = u1, .v = v1 };
     tex2_t c_uv = { .u = u2, .v = v2 };
 
+    float recipricol_w_a = 1.0 / point_a.w;
+    float recipricol_w_b = 1.0 / point_b.w;
+    float recipricol_w_c = 1.0 / point_c.w;
+
     // render flat-bottom triangle
     float inv_slope_1 = 0;
     float inv_slope_2 = 0;
@@ -180,7 +189,12 @@ void draw_textured_triangle(
             }
 
             for (int x = x_start; x < x_end; ++x) {
-                draw_texel(x, y, texture, point_a, point_b, point_c, a_uv, b_uv, c_uv);
+                draw_texel(
+                    x, y, texture,
+                    point_a, point_b, point_c,
+                    recipricol_w_a, recipricol_w_b, recipricol_w_c,
+                    a_uv, b_uv, c_uv
+                );
             }
         }
     }
@@ -202,7 +216,12 @@ void draw_textured_triangle(
             }
 
             for (int x = x_start; x < x_end; ++x) {
-                draw_texel(x, y, texture, point_a, point_b, point_c, a_uv, b_uv, c_uv);
+                draw_texel(
+                    x, y, texture,
+                    point_a, point_b, point_c,
+                    recipricol_w_a, recipricol_w_b, recipricol_w_c,
+                    a_uv, b_uv, c_uv
+                );
             }
         }
     }
