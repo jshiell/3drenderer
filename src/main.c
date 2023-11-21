@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include "upng.h"
 #include "array.h"
+#include "camera.h"
 #include "display.h"
 #include "light.h"
 #include "matrix.h"
@@ -19,8 +20,9 @@ int num_triangles_to_render = 0;
 bool is_running = false;
 int previous_frame_time = 0;
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = 0 };
+mat4_t world_matrix;
 mat4_t proj_matrix;
+mat4_t view_matrix;
 
 void setup(void) {
     render_method = RENDER_WIRE;
@@ -109,7 +111,14 @@ void update(void) {
     // mesh.scale.x += 0.002;
     // mesh.scale.y += 0.001;
     // mesh.translation.x += 0.01;
-    mesh.translation.z = 5.0;
+    mesh.translation.z = 4.0;
+
+    camera.position.x += 0.008;
+    camera.position.y += 0.008;
+
+    vec3_t target = { 0, 0, 4.0 };
+    vec3_t up_direction = { 0, 1, 0 };
+    view_matrix = mat4_look_at(camera.position, target, up_direction);
 
     mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
     mat4_t translation_matrix = mat4_make_translation(mesh.translation.x, mesh.translation.y, mesh.translation.z);
@@ -117,7 +126,7 @@ void update(void) {
     mat4_t rotation_matrix_y = mat4_make_rotation_y(mesh.rotation.y);
     mat4_t rotation_matrix_z = mat4_make_rotation_z(mesh.rotation.z);
 
-    mat4_t world_matrix = mat4_identity();
+    world_matrix = mat4_identity();
     world_matrix = mat4_mul_mat4(scale_matrix, world_matrix);
     world_matrix = mat4_mul_mat4(rotation_matrix_z, world_matrix);
     world_matrix = mat4_mul_mat4(rotation_matrix_y, world_matrix);
@@ -137,6 +146,10 @@ void update(void) {
         for (int j = 0; j < 3; ++j) {
             vec4_t transformed_vertex = vec4_from_vec3(face_vertices[j]);
             transformed_vertex = mat4_mul_vec4(world_matrix, transformed_vertex);
+
+            // transform to view space
+            transformed_vertex = mat4_mul_vec4(view_matrix, transformed_vertex);
+
             transformed_vertices[j] = transformed_vertex;
         }
 
@@ -154,8 +167,9 @@ void update(void) {
         vec3_normalise(&normal);
 
         if (cull_method == CULL_BACKFACE) {
-            // find vector from triangle to the camera
-            vec3_t camera_ray = vec3_sub(camera_position, vector_a);
+            // find vector from triangle to the origin
+            vec3_t origin = { 0, 0, 0 };
+            vec3_t camera_ray = vec3_sub(origin, vector_a);
 
             float dot_normal_camera = vec3_dot(normal, camera_ray);
             if (dot_normal_camera < 0) {
