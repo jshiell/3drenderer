@@ -47,12 +47,12 @@ void setup(void) {
     proj_matrix = mat4_make_perspective(fov, aspect_ratio, znear, zfar);
 
     // load_cube_mesh_data();
-    char* filename = "assets/drone.obj";
+    char* filename = "assets/f22.obj";
     if (!load_obj_file_data(filename)) {
         fprintf(stderr, "Failed to load obj file data from %s\n", filename);
         exit(1);
     }
-    load_png_texture_data("assets/drone.png");
+    load_png_texture_data("assets/f22.png");
 }
 
 void process_input(void) {
@@ -65,13 +65,33 @@ void process_input(void) {
             break;
         case SDL_KEYDOWN:
             switch (event.key.keysym.sym) {
+                case SDLK_w:
+                    camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+                    camera.position = vec3_add(camera.position, camera.forward_velocity);
+                    break;
+                case SDLK_s:
+                    camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+                    camera.position = vec3_sub(camera.position, camera.forward_velocity);
+                    break;
+                case SDLK_a:
+                    camera.yaw += 1.0 * delta_time;
+                    break;
+                case SDLK_d:
+                    camera.yaw -= 1.0 * delta_time;
+                    break;
+                case SDLK_UP:
+                    camera.position.y += 3.0 * delta_time;
+                    break;
+                case SDLK_DOWN:
+                    camera.position.y -= 3.0 * delta_time;
+                    break;
                 case SDLK_ESCAPE:
                     is_running = false;
                     break;
                 case SDLK_c:
                     cull_method = CULL_BACKFACE;
                     break;
-                case SDLK_d:
+                case SDLK_x:
                     cull_method = CULL_NONE;
                     break;
                 case SDLK_1:
@@ -108,18 +128,20 @@ void update(void) {
     num_triangles_to_render = 0;
 
     // mesh.rotation.x += 0.05;
-    mesh.rotation.y += 0.5 * delta_time;
+    // mesh.rotation.y += 0.5 * delta_time;
     // mesh.rotation.z += 0.01 * delta_time;
     // mesh.scale.x += 0.002 * delta_time;
     // mesh.scale.y += 0.001 * delta_time;
     // mesh.translation.x += 0.01 * delta_time;
     mesh.translation.z = 5.0;
 
-    // camera.position.x += 0.5 * delta_time;
-    // camera.position.y += 0.8 * delta_time;
-
-    vec3_t target = { 0, 0, 5.0 };
     vec3_t up_direction = { 0, 1, 0 };
+    vec3_t target = { 0, 0, 1 };
+    mat4_t camera_yaw_rotation = mat4_make_rotation_y(camera.yaw);
+    camera.direction = vec3_from_vec4(mat4_mul_vec4(camera_yaw_rotation, vec4_from_vec3(target)));
+    // offset camera
+    target = vec3_add(camera.position, camera.direction);
+
     view_matrix = mat4_look_at(camera.position, target, up_direction);
 
     mat4_t scale_matrix = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
