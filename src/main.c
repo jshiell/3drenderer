@@ -50,12 +50,12 @@ void setup(void) {
     initialise_frustum_planes(fov, znear, zfar);
 
     // load_cube_mesh_data();
-    char* filename = "assets/f22.obj";
+    char* filename = "assets/cube.obj";
     if (!load_obj_file_data(filename)) {
         fprintf(stderr, "Failed to load obj file data from %s\n", filename);
         exit(1);
     }
-    load_png_texture_data("assets/f22.png");
+    load_png_texture_data("assets/cube.png");
 }
 
 void process_input(void) {
@@ -161,6 +161,10 @@ void update(void) {
     world_matrix = mat4_mul_mat4(translation_matrix, world_matrix);
 
     for (int i = 0; i < array_length(mesh.faces); ++i) {
+        if (i != 4) { // debug for clipping
+            continue;
+        }
+
         face_t mesh_face = mesh.faces[i];
 
         vec3_t face_vertices[3];
@@ -203,6 +207,15 @@ void update(void) {
                 continue;
             }
         }
+
+        // clipping
+        polygon_t polygon = create_polygon_from_triangle(
+            vec3_from_vec4(transformed_vertices[0]),
+            vec3_from_vec4(transformed_vertices[1]),
+            vec3_from_vec4(transformed_vertices[2])
+        );
+        clip_polygon(&polygon);
+        // TODO break polygon back into triangles
 
         // project
         vec4_t projected_points[3];
