@@ -53,6 +53,11 @@ vec3_t vec3_new(float x, float y, float z) {
     return result;
 }
 
+vec3_t vec3_clone(vec3_t* v) {
+    vec3_t result = { v->x, v->y, v->z };
+    return result;
+}
+
 float vec3_length(vec3_t v) {
     return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }

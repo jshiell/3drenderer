@@ -215,6 +215,7 @@ void update(void) {
             vec3_from_vec4(transformed_vertices[2])
         );
         clip_polygon(&polygon);
+
         // TODO break polygon back into triangles
 
         // project
