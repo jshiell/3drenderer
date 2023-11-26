@@ -48,6 +48,16 @@ polygon_t create_polygon_from_triangle(vec3_t v0, vec3_t v1, vec3_t v2) {
     return polygon;
 }
 
+void triangles_from_polygon(polygon_t* polygon, triangle_t triangles[], int* num_trangles) {
+    for (int i = 0; i < polygon->num_vertices - 2; ++i) {
+        triangles[i].points[0] = vec4_from_vec3(polygon->vertices[0]);
+        triangles[i].points[1] = vec4_from_vec3(polygon->vertices[i + 1]);
+        triangles[i].points[2] = vec4_from_vec3(polygon->vertices[i + 2]);
+    }
+
+    *num_trangles = polygon->num_vertices - 2;
+}
+
 void clip_polygon_against_plane(polygon_t* polygon, int plane) {
     vec3_t plane_point = frustum_planes[plane].point;
     vec3_t plane_normal = frustum_planes[plane].normal;
