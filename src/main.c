@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -41,13 +42,15 @@ void setup(void) {
         window_height
     );
 
-    float fov = M_PI / 3.0f; // 60 degrees
-    float aspect_ratio = (float) window_height / (float) window_width;
+    float aspect_ratio_y = (float) window_height / (float) window_width;
+    float fov_y = M_PI / 3.0f; // 60 degrees
+    float aspect_ratio_x = (float) window_width / (float) window_height;
+    float fov_x = atan(tan(fov_y / 2.0f) * aspect_ratio_x) * 2;
     float znear = 0.1;
     float zfar = 100.0;
-    proj_matrix = mat4_make_perspective(fov, aspect_ratio, znear, zfar);
+    proj_matrix = mat4_make_perspective(fov_y, aspect_ratio_y, znear, zfar);
 
-    initialise_frustum_planes(fov, znear, zfar);
+    initialise_frustum_planes(fov_x, fov_y, znear, zfar);
 
     // load_cube_mesh_data();
     char* filename = "assets/cube.obj";
