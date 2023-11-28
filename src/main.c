@@ -42,12 +42,12 @@ void setup(void) {
     initialise_frustum_planes(fov_x, fov_y, znear, zfar);
 
     // load_cube_mesh_data();
-    char* filename = "assets/f117.obj";
+    char* filename = "assets/f22.obj";
     if (!load_obj_file_data(filename)) {
         fprintf(stderr, "Failed to load obj file data from %s\n", filename);
         exit(1);
     }
-    load_png_texture_data("assets/f117.png");
+    load_png_texture_data("assets/f22.png");
 }
 
 void process_input(void) {
