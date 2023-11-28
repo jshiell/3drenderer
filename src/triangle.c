@@ -2,6 +2,21 @@
 #include "display.h"
 #include "swap.h"
 
+vec3_t get_triangle_normal(vec4_t vertices[3]) {
+    vec3_t vector_a = vec3_from_vec4(vertices[0]); /*   A  */  
+    vec3_t vector_b = vec3_from_vec4(vertices[1]); /*  / \ */
+    vec3_t vector_c = vec3_from_vec4(vertices[2]); /* C--B */
+
+    vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+    vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+    vec3_normalise(&vector_ab);
+    vec3_normalise(&vector_ac);
+
+    vec3_t normal = vec3_cross(vector_ab, vector_ac);
+    vec3_normalise(&normal);
+    return normal;
+}
+
 void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t colour) {
     draw_line(x0, y0, x1, y1, colour);
     draw_line(x1, y1, x2, y2, colour);
