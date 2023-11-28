@@ -31,6 +31,8 @@ void setup(void) {
     set_render_method(RENDER_TEXTURED);
     set_cull_method(CULL_BACKFACE);
 
+    init_light(vec3_new(0, 0, 1));
+
     float aspect_ratio_y = (float) get_window_height() / (float) get_window_width();
     float fov_y = M_PI / 3.0f; // 60 degrees
     float aspect_ratio_x = (float) get_window_width() / (float) get_window_height();
@@ -234,7 +236,7 @@ void update(void) {
             }
 
             // flat shading, base intensity on alignment with inverse of the light direction
-            float light_intensity_factor = -vec3_dot(normal, light.direction);
+            float light_intensity_factor = -vec3_dot(normal, get_light_direction());
             uint32_t triangle_colour = light_apply_intensity(mesh_face.colour, light_intensity_factor);
 
             triangle_t triangle_to_render = {
