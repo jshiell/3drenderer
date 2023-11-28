@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "upng.h"
 #include "array.h"
 #include "camera.h"
