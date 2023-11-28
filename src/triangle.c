@@ -171,14 +171,14 @@ void draw_triangle_texel(
     interpolated_u /= interpolated_recipricol_w;
     interpolated_v /= interpolated_recipricol_w;
 
-    int tex_x = abs((int) (texture_width * interpolated_u)) % texture_width;
-    int tex_y = abs((int) (texture_height * interpolated_v)) % texture_height;
+    // int tex_x = abs((int) (texture_width * interpolated_u)) % texture_width;
+    // int tex_y = abs((int) (texture_height * interpolated_v)) % texture_height;
 
-    float z_buffer_w = 1.0 - interpolated_recipricol_w;
-    if (z_buffer_w < get_z_buffer_at(x, y)) {
-        draw_pixel(x, y, texture[tex_y * texture_width + tex_x]);
-        update_z_buffer_at(x, y, z_buffer_w);
-    }
+    // float z_buffer_w = 1.0 - interpolated_recipricol_w;
+    // if (z_buffer_w < get_z_buffer_at(x, y)) {
+    //     draw_pixel(x, y, texture[tex_y * texture_width + tex_x]);
+    //     update_z_buffer_at(x, y, z_buffer_w);
+    // }
 }
 
 void draw_textured_triangle(

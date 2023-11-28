@@ -4,64 +4,14 @@
 #include <string.h>
 #include "array.h"
 #include "mesh.h"
+#include "upng.h"
 
-#define N_CUBE_VERTICES 8
-#define N_CUBE_FACES (6 * 2)
+#define MAX_NUM_MESHES 10
+static mesh_t meshes[MAX_NUM_MESHES];
+static int mesh_count = 0;
 
-mesh_t mesh = {
-    .vertices = NULL,
-    .faces = NULL,
-    .rotation = { .x = 0, .y = 0, .z = 0 },
-    .scale = { .x = 1.0, .y = 1.0, .z = 1.0 },
-    .translation = { .x = 0, .y = 0, .z = 0 }
-};
-
-vec3_t cube_vertices[N_CUBE_VERTICES] = {
-    { .x = -1, .y = -1, .z = -1 },
-    { .x = -1, .y =  1, .z = -1 },
-    { .x =  1, .y =  1, .z = -1 },
-    { .x =  1, .y = -1, .z = -1 },
-    { .x =  1, .y =  1, .z =  1 },
-    { .x =  1, .y = -1, .z =  1 },
-    { .x = -1, .y =  1, .z =  1 },
-    { .x = -1, .y = -1, .z =  1 }
-};
-
-face_t cube_faces [N_CUBE_FACES] = {
-    // front
-    { .a = 1, .b = 2, .c = 3, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .colour = 0xFFFFFFFF },
-    { .a = 1, .b = 3, .c = 4, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .colour = 0xFFFFFFFF },
-    // right
-    { .a = 4, .b = 3, .c = 5, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .colour = 0xFFFFFFFF },
-    { .a = 4, .b = 5, .c = 6, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .colour = 0xFFFFFFFF },
-    // back
-    { .a = 6, .b = 5, .c = 7, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .colour = 0xFFFFFFFF },
-    { .a = 6, .b = 7, .c = 8, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .colour = 0xFFFFFFFF },
-    // left
-    { .a = 8, .b = 7, .c = 2, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .colour = 0xFFFFFFFF },
-    { .a = 8, .b = 2, .c = 1, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .colour = 0xFFFFFFFF },
-    // top
-    { .a = 2, .b = 7, .c = 5, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .colour = 0xFFFFFFFF },
-    { .a = 2, .b = 5, .c = 3, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .colour = 0xFFFFFFFF },
-    // bottom
-    { .a = 6, .b = 8, .c = 1, .a_uv = { 0, 1 }, .b_uv = { 0, 0 }, .c_uv = { 1, 0 }, .colour = 0xFFFFFFFF },
-    { .a = 6, .b = 1, .c = 4, .a_uv = { 0, 1 }, .b_uv = { 1, 0 }, .c_uv = { 1, 1 }, .colour = 0xFFFFFFFF }
-};
-
-void load_cube_mesh_data(void) {
-    for (int i = 0; i < N_CUBE_VERTICES; ++i) {
-        vec3_t cube_vertix = cube_vertices[i];
-        array_push(mesh.vertices, cube_vertix);
-    }
-
-    for (int i = 0; i < N_CUBE_FACES; ++i) {
-        face_t cube_face = cube_faces[i];
-        array_push(mesh.faces, cube_face);
-    }
-}
-
-bool load_obj_file_data(char* filename) {
-    FILE* fp = fopen(filename, "r");
+bool load_mesh_obj_data(mesh_t* mesh, char* obj_filename) {
+    FILE* fp = fopen(obj_filename, "r");
     if (fp == NULL) {
         return false;
     }
@@ -74,7 +24,7 @@ bool load_obj_file_data(char* filename) {
         if (strcmp(buffer, "v") == 0) {
             vec3_t vertex;
             fscanf(fp, "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
-            array_push(mesh.vertices, vertex);
+            array_push(mesh->vertices, vertex);
 
         } else if (strcmp(buffer, "vt") == 0) {
             tex2_t texcoord;
@@ -96,7 +46,7 @@ bool load_obj_file_data(char* filename) {
                 .c_uv = texcoords[tc_c_index - 1],
                 .colour = 0xFFFFFFFF
             };
-            array_push(mesh.faces, face);
+            array_push(mesh->faces, face);
         }
     }
 
@@ -104,4 +54,56 @@ bool load_obj_file_data(char* filename) {
     fclose(fp);
 
     return true;
+}
+
+bool load_mesh_png_data(mesh_t* mesh, char* png_filename) {
+    upng_t* png_image = upng_new_from_file(png_filename);
+    if (png_image != NULL) {
+        upng_decode(png_image);
+        if (upng_get_error(png_image) == UPNG_EOK) {
+            mesh->texture = png_image;
+            return true;
+        }
+    }
+    return false;
+}
+
+void load_mesh(char* obj_filename, char* png_filename, vec3_t scale, vec3_t translation, vec3_t rotation) {
+    if (mesh_count == MAX_NUM_MESHES) {
+        printf("Maximum number of meshes (%d) reached!\n", MAX_NUM_MESHES);
+        return;
+    }
+
+    mesh_t* mesh = &meshes[mesh_count];
+    mesh->scale = scale;
+    mesh->translation = translation;
+    mesh->rotation = rotation;
+
+    if (!load_mesh_obj_data(mesh, obj_filename)) {
+        printf("Failed to load mesh file: %s\n", obj_filename);
+        return;
+    }
+
+    if (!load_mesh_png_data(mesh, png_filename)) {
+        printf("Failed to load texture file: %s\n", png_filename);
+        return;
+    }
+
+    ++mesh_count;
+}
+
+int get_num_meshes(void) {
+    return mesh_count;
+}
+
+mesh_t* get_mesh(int index) {
+    return &meshes[index];
+}
+
+void free_meshes(void) {
+    for (int i = 0; i < mesh_count; ++i) {
+        upng_free(meshes[i].texture);
+        array_free(meshes[i].faces);
+        array_free(meshes[i].vertices);
+    }
 }
