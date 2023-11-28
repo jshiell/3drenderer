@@ -139,7 +139,7 @@ void draw_filled_triangle(
 }
 
 void draw_triangle_texel(
-    int x, int y, uint32_t* texture,
+    int x, int y, upng_t* texture,
     vec4_t point_a, vec4_t point_b, vec4_t point_c,
     float recipricol_w_a, float recipricol_w_b, float recipricol_w_c,
     tex2_t a_uv, tex2_t b_uv, tex2_t c_uv
@@ -171,21 +171,25 @@ void draw_triangle_texel(
     interpolated_u /= interpolated_recipricol_w;
     interpolated_v /= interpolated_recipricol_w;
 
-    // int tex_x = abs((int) (texture_width * interpolated_u)) % texture_width;
-    // int tex_y = abs((int) (texture_height * interpolated_v)) % texture_height;
+    int texture_width = upng_get_width(texture);
+    int texture_height = upng_get_height(texture);
+    uint32_t* texture_buffer = (uint32_t*) upng_get_buffer(texture);
 
-    // float z_buffer_w = 1.0 - interpolated_recipricol_w;
-    // if (z_buffer_w < get_z_buffer_at(x, y)) {
-    //     draw_pixel(x, y, texture[tex_y * texture_width + tex_x]);
-    //     update_z_buffer_at(x, y, z_buffer_w);
-    // }
+    int tex_x = abs((int) (texture_width * interpolated_u)) % texture_width;
+    int tex_y = abs((int) (texture_height * interpolated_v)) % texture_height;
+
+    float z_buffer_w = 1.0 - interpolated_recipricol_w;
+    if (z_buffer_w < get_z_buffer_at(x, y)) {
+        draw_pixel(x, y, texture_buffer[tex_y * texture_width + tex_x]);
+        update_z_buffer_at(x, y, z_buffer_w);
+    }
 }
 
 void draw_textured_triangle(
     int x0, int y0, float z0, float w0, float u0, float v0,
     int x1, int y1, float z1, float w1, float u1, float v1,
     int x2, int y2, float z2, float w2, float u2, float v2,
-    uint32_t* texture
+    upng_t* texture
 ) {
     if (y0 > y1) {
         int_swap(&y0, &y1);

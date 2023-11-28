@@ -28,7 +28,7 @@ mat4_t proj_matrix;
 mat4_t view_matrix;
 
 void setup(void) {
-    set_render_method(RENDER_WIRE);
+    set_render_method(RENDER_TEXTURED);
     set_cull_method(CULL_BACKFACE);
 
     init_light(vec3_new(0, 0, 1));
@@ -43,8 +43,8 @@ void setup(void) {
 
     initialise_frustum_planes(fov_x, fov_y, znear, zfar);
 
-    load_mesh("assets/f22.obj", "assets/f22.png", vec3_new(1, 1, 1), vec3_new(-3, 0, 0), vec3_new(0, 0, 0));
-    load_mesh("assets/efa.obj", "assets/efa.png", vec3_new(1, 1, 1), vec3_new(3, 0, 0), vec3_new(0, 0, 0));
+    load_mesh("assets/f22.obj", "assets/f22.png", vec3_new(1, 1, 1), vec3_new(-3, 0, 8), vec3_new(0, 0, 0));
+    load_mesh("assets/efa.obj", "assets/efa.png", vec3_new(1, 1, 1), vec3_new(3, 0, 8), vec3_new(0, 0, 0));
 }
 
 void process_input(void) {
@@ -127,13 +127,13 @@ void update(void) {
     for (int mesh_index = 0; mesh_index < get_num_meshes(); ++mesh_index) {
         mesh_t* mesh = get_mesh(mesh_index);
 
-        // mesh.rotation.x += 0.05;
-        // mesh.rotation.y += 0.5 * delta_time;
-        // mesh.rotation.z += 0.01 * delta_time;
-        // mesh.scale.x += 0.002 * delta_time;
-        // mesh.scale.y += 0.001 * delta_time;
-        // mesh.translation.x += 0.01 * delta_time;
-        // mesh.translation.z = 5.0;
+        // mesh->rotation.x += 0.05 * delta_time;
+        mesh->rotation.y += 0.5 * delta_time;
+        // mesh->rotation.z += 0.01 * delta_time;
+        // mesh->scale.x += 0.002 * delta_time;
+        // mesh->scale.y += 0.001 * delta_time;
+        // mesh->translation.x += 0.01 * delta_time;
+        // mesh->translation.z = 5.0;
 
         mat4_t scale_matrix = mat4_make_scale(mesh->scale.x, mesh->scale.y, mesh->scale.z);
         mat4_t translation_matrix = mat4_make_translation(mesh->translation.x, mesh->translation.y, mesh->translation.z);
@@ -243,7 +243,8 @@ void update(void) {
                         { triangle_after_clipping.texcoords[1].u, triangle_after_clipping.texcoords[1].v },
                         { triangle_after_clipping.texcoords[2].u, triangle_after_clipping.texcoords[2].v }
                     },
-                    .colour = triangle_colour
+                    .colour = triangle_colour,
+                    .texture = mesh->texture
                 };
 
                 if (num_triangles_to_render < MAX_TRIANGLES_PER_MESH) {
@@ -272,11 +273,11 @@ void render(void) {
         }
 
         if (should_render_textured_triangles()) {
-            // draw_textured_triangle(
-            //     triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.texcoords[0].u, triangle.texcoords[0].v,
-            //     triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.texcoords[1].u, triangle.texcoords[1].v,
-            //     triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.texcoords[2].u, triangle.texcoords[2].v,
-            //     mesh_texture);
+            draw_textured_triangle(
+                triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.texcoords[0].u, triangle.texcoords[0].v,
+                triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.texcoords[1].u, triangle.texcoords[1].v,
+                triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.texcoords[2].u, triangle.texcoords[2].v,
+                triangle.texture);
         }
 
         if (should_render_wireframe()) {
