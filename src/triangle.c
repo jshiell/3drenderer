@@ -46,9 +46,9 @@ void draw_triangle_pixel(
     float interpolated_recipricol_w = recipricol_w_a * alpha + recipricol_w_b * beta + recipricol_w_c * gamma;
 
     float z_buffer_w = 1.0 - interpolated_recipricol_w;
-    if (z_buffer_w < z_buffer[(window_width * y) + x]) {
+    if (z_buffer_w < get_z_buffer_at(x, y)) {
         draw_pixel(x, y, colour);
-        z_buffer[(window_width * y) + x] = z_buffer_w;
+        update_z_buffer_at(x, y, z_buffer_w);
     }
 }
 
@@ -175,9 +175,9 @@ void draw_triangle_texel(
     int tex_y = abs((int) (texture_height * interpolated_v)) % texture_height;
 
     float z_buffer_w = 1.0 - interpolated_recipricol_w;
-    if (z_buffer_w < z_buffer[(window_width * y) + x]) {
+    if (z_buffer_w < get_z_buffer_at(x, y)) {
         draw_pixel(x, y, texture[tex_y * texture_width + tex_x]);
-        z_buffer[(window_width * y) + x] = z_buffer_w;
+        update_z_buffer_at(x, y, z_buffer_w);
     }
 }
 

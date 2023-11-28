@@ -28,23 +28,12 @@ mat4_t proj_matrix;
 mat4_t view_matrix;
 
 void setup(void) {
-    render_method = RENDER_TEXTURED;
-    cull_method = CULL_BACKFACE;
+    set_render_method(RENDER_TEXTURED);
+    set_cull_method(CULL_BACKFACE);
 
-    colour_buffer = (uint32_t*) malloc(sizeof(uint32_t) * window_width * window_height);
-    z_buffer = (float*) malloc(sizeof(float) * window_width * window_height);
-
-    colour_buffer_texture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGBA32,
-        SDL_TEXTUREACCESS_STREAMING,
-        window_width,
-        window_height
-    );
-
-    float aspect_ratio_y = (float) window_height / (float) window_width;
+    float aspect_ratio_y = (float) get_window_height() / (float) get_window_width();
     float fov_y = M_PI / 3.0f; // 60 degrees
-    float aspect_ratio_x = (float) window_width / (float) window_height;
+    float aspect_ratio_x = (float) get_window_width() / (float) get_window_height();
     float fov_x = atan(tan(fov_y / 2.0f) * aspect_ratio_x) * 2;
     float znear = 0.1;
     float zfar = 100.0;
@@ -53,73 +42,74 @@ void setup(void) {
     initialise_frustum_planes(fov_x, fov_y, znear, zfar);
 
     // load_cube_mesh_data();
-    char* filename = "assets/cube.obj";
+    char* filename = "assets/f117.obj";
     if (!load_obj_file_data(filename)) {
         fprintf(stderr, "Failed to load obj file data from %s\n", filename);
         exit(1);
     }
-    load_png_texture_data("assets/cube.png");
+    load_png_texture_data("assets/f117.png");
 }
 
 void process_input(void) {
     SDL_Event event;
 
-    SDL_PollEvent(&event);
-    switch (event.type) {
-        case SDL_QUIT:
-            is_running = false;
-            break;
-        case SDL_KEYDOWN:
-            switch (event.key.keysym.sym) {
-                case SDLK_w:
-                    camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
-                    camera.position = vec3_add(camera.position, camera.forward_velocity);
-                    break;
-                case SDLK_s:
-                    camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
-                    camera.position = vec3_sub(camera.position, camera.forward_velocity);
-                    break;
-                case SDLK_a:
-                    camera.yaw += 1.0 * delta_time;
-                    break;
-                case SDLK_d:
-                    camera.yaw -= 1.0 * delta_time;
-                    break;
-                case SDLK_UP:
-                    camera.position.y += 3.0 * delta_time;
-                    break;
-                case SDLK_DOWN:
-                    camera.position.y -= 3.0 * delta_time;
-                    break;
-                case SDLK_ESCAPE:
-                    is_running = false;
-                    break;
-                case SDLK_c:
-                    cull_method = CULL_BACKFACE;
-                    break;
-                case SDLK_x:
-                    cull_method = CULL_NONE;
-                    break;
-                case SDLK_1:
-                    render_method = RENDER_WIRE_VERTEX;
-                    break;
-                case SDLK_2:
-                    render_method = RENDER_WIRE;
-                    break;
-                case SDLK_3:
-                    render_method = RENDER_FILL_TRIANGLE;
-                    break;
-                case SDLK_4:
-                    render_method = RENDER_FILL_TRIANGLE_WIRE;
-                    break;
-                case SDLK_5:
-                    render_method = RENDER_TEXTURED;
-                    break;
-                case SDLK_6:
-                    render_method = RENDER_TEXTURED_WIRE;
-                    break;
-            }
-            break;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+            case SDL_QUIT:
+                is_running = false;
+                break;
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym) {
+                    case SDLK_w:
+                        camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+                        camera.position = vec3_add(camera.position, camera.forward_velocity);
+                        break;
+                    case SDLK_s:
+                        camera.forward_velocity = vec3_mul(camera.direction, 5.0 * delta_time);
+                        camera.position = vec3_sub(camera.position, camera.forward_velocity);
+                        break;
+                    case SDLK_a:
+                        camera.yaw += 1.0 * delta_time;
+                        break;
+                    case SDLK_d:
+                        camera.yaw -= 1.0 * delta_time;
+                        break;
+                    case SDLK_UP:
+                        camera.position.y += 3.0 * delta_time;
+                        break;
+                    case SDLK_DOWN:
+                        camera.position.y -= 3.0 * delta_time;
+                        break;
+                    case SDLK_ESCAPE:
+                        is_running = false;
+                        break;
+                    case SDLK_c:
+                        set_cull_method(CULL_BACKFACE);
+                        break;
+                    case SDLK_x:
+                        set_cull_method(CULL_NONE);
+                        break;
+                    case SDLK_1:
+                        set_render_method(RENDER_WIRE_VERTEX);
+                        break;
+                    case SDLK_2:
+                        set_render_method(RENDER_WIRE);
+                        break;
+                    case SDLK_3:
+                        set_render_method(RENDER_FILL_TRIANGLE);
+                        break;
+                    case SDLK_4:
+                        set_render_method(RENDER_FILL_TRIANGLE_WIRE);
+                        break;
+                    case SDLK_5:
+                        set_render_method(RENDER_TEXTURED);
+                        break;
+                    case SDLK_6:
+                        set_render_method(RENDER_TEXTURED_WIRE);
+                        break;
+                }
+                break;
+        }
     }
 }
 
@@ -196,7 +186,7 @@ void update(void) {
         vec3_t normal = vec3_cross(vector_ab, vector_ac);
         vec3_normalise(&normal);
 
-        if (cull_method == CULL_BACKFACE) {
+        if (is_cull_backface()) {
             // find vector from triangle to the origin
             vec3_t origin = { 0, 0, 0 };
             vec3_t camera_ray = vec3_sub(origin, vector_a);
@@ -232,15 +222,15 @@ void update(void) {
                 projected_points[j] = mat4_mul_vec4_project(proj_matrix, triangle_after_clipping.points[j]);
 
                 // scale to viewport
-                projected_points[j].x *= (window_width / 2.0);
-                projected_points[j].y *= (window_height / 2.0);
+                projected_points[j].x *= (get_window_width() / 2.0);
+                projected_points[j].y *= (get_window_height() / 2.0);
 
                 // invert y values to account for flipped y axis
                 projected_points[j].y *= -1;
 
                 // translate to middle of screen
-                projected_points[j].x += (window_width / 2.0);
-                projected_points[j].y += (window_height / 2.0);
+                projected_points[j].x += (get_window_width() / 2.0);
+                projected_points[j].y += (get_window_height() / 2.0);
             }
 
             // flat shading, base intensity on alignment with inverse of the light direction
@@ -269,14 +259,15 @@ void update(void) {
 }
 
 void render(void) {
-    SDL_RenderClear(renderer);
+    clear_colour_buffer(0xFF000000);
+    clear_z_buffer();
 
     draw_grid();
 
     for (int i = 0; i < num_triangles_to_render; ++i) {
         triangle_t triangle = triangles_to_render[i];
 
-        if (render_method == RENDER_FILL_TRIANGLE || render_method == RENDER_FILL_TRIANGLE_WIRE) {
+        if (should_render_filled_triangles()) {
             draw_filled_triangle(
                 triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w,
                 triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w,
@@ -284,7 +275,7 @@ void render(void) {
                 triangle.colour);
         }
 
-        if (render_method == RENDER_TEXTURED || render_method == RENDER_TEXTURED_WIRE) {
+        if (should_render_textured_triangles()) {
             draw_textured_triangle(
                 triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.texcoords[0].u, triangle.texcoords[0].v,
                 triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.texcoords[1].u, triangle.texcoords[1].v,
@@ -292,8 +283,7 @@ void render(void) {
                 mesh_texture);
         }
 
-        if (render_method == RENDER_WIRE || render_method == RENDER_WIRE_VERTEX
-                || render_method == RENDER_FILL_TRIANGLE_WIRE || render_method == RENDER_TEXTURED_WIRE) {
+        if (should_render_wireframe()) {
             draw_triangle(
                 triangle.points[0].x, triangle.points[0].y,
                 triangle.points[1].x, triangle.points[1].y,
@@ -301,7 +291,7 @@ void render(void) {
                 0xFFFFFFFF);
         }
 
-        if (render_method == RENDER_WIRE_VERTEX) {
+        if (should_render_wire_vertex()) {
             draw_rect(triangle.points[0].x - 3, triangle.points[0].y - 3, 6, 6, 0xFFFF0000);
             draw_rect(triangle.points[1].x - 3, triangle.points[1].y - 3, 6, 6, 0xFFFF0000);
             draw_rect(triangle.points[2].x - 3, triangle.points[2].y - 3, 6, 6, 0xFFFF0000);
@@ -309,15 +299,9 @@ void render(void) {
     }
 
     render_colour_buffer();
-    clear_colour_buffer(0xFF000000);
-    clear_z_buffer();
-
-    SDL_RenderPresent(renderer);
 }
 
 void free_resources(void) {
-    free(z_buffer);
-    free(colour_buffer);
     upng_free(png_texture);
     array_free(mesh.faces);
     array_free(mesh.vertices);
